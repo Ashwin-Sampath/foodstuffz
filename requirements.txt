@@ -1,0 +1,4 @@
+Flask-RESTful
+Flask-PyMongo
+gunicorn
+pymongo[gssapi,srv,tls]
