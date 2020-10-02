@@ -9,6 +9,7 @@ search_params.add_argument("_id", type=str)
 search_params.add_argument("email", type=str)
 search_params.add_argument("firstName", type=str)
 search_params.add_argument("lastName", type=str)
+search_params.add_argument("favoriteCompany", type=str)
 
 # Parameter parser used for PUT and DELETE requests
 required_id = reqparse.RequestParser()
@@ -25,6 +26,9 @@ required_body.add_argument(
 required_body.add_argument(
     "lastName", type=str, required=True, help="Last name cannot be missing"
 )
+required_body.add_argument(
+    "favoriteCompany", type=str, required=True, help="Favorite company cannot be missing"
+)
 
 
 class User(Resource):
@@ -37,8 +41,8 @@ class User(Resource):
                 query[key] = ObjectId(value)
             elif value:
                 query[key] = value
-        if not query:
-            return {"message": "Invalid params"}, 400
+        # if not query:
+        #     return {"message": "Invalid params"}, 400
         # Search for all users that match query parameters
         users = [user for user in mongo.db.user.find(query)]
         if not users:
