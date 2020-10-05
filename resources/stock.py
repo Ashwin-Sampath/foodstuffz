@@ -1,3 +1,4 @@
+import util
 from flask import json
 from flask_restful import Resource, reqparse
 from bson.objectid import ObjectId
@@ -22,29 +23,20 @@ required_body.add_argument(
     "symbol", type=str, required=True, help="Symbol cannot be missing"
 )
 
+
 class Stock(Resource):
     def get(self):
         params = search_params.parse_args()
-        query = {}
-        for key, value in params.items():
-            # Converts "_id" to Mongo ObjectId for querying
-            if key == '_id' and value:
-                query[key] = ObjectId(value)
-            elif value:
-                query[key] = value
-        if not query:
-            return {"message": "Invalid params"}, 400
+        query = util.get_mongo_query(params)
         # Search for all stocks that match query parameters
         stocks = [stock for stock in mongo.db.stock.find(query)]
-        if not stocks:
-            return {"message": "Stock not found"}, 404
-        return json.jsonify(stocks)
+        return json.jsonify(data=stocks)
 
     def post(self):
         data = required_body.parse_args()
         # Create stock with data from request
         mongo.db.stock.insert_one(data)
-        return json.jsonify(data)
+        return json.jsonify(data=data)
 
     def put(self):
         params = required_id.parse_args()
@@ -56,7 +48,7 @@ class Stock(Resource):
         # Update stock with data from request
         mongo.db.stock.update_one({"_id": ObjectId(stock_id)}, {"$set": data})
         updated_stock = mongo.db.stock.find_one({"_id": ObjectId(stock_id)})
-        return json.jsonify(updated_stock)
+        return json.jsonify(data=updated_stock)
 
     def delete(self):
         params = required_id.parse_args()

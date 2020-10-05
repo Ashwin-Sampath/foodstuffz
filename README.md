@@ -27,7 +27,7 @@ Skeleton Flask backend that has CRUD (Create, Read, Update, Delete) endpoints fo
 Gets users based on params
 
 ```
-PARAMS (At least one param MUST be provided):
+PARAMS:
 "_id"                       : String, returned from POST /user
 "email"                     : String
 "firstName"                 : String

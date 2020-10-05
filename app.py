@@ -1,3 +1,4 @@
+import os
 import util
 import db
 from flask import Flask
@@ -6,7 +7,6 @@ from flask_restful import Api
 from resources.user import User
 from resources.stock import Stock
 from dotenv import load_dotenv
-import os
 
 # Load Environment variables
 load_dotenv()
@@ -22,6 +22,12 @@ api = Api(app)
 
 api.add_resource(User, "/user")
 api.add_resource(Stock, "/stock")
+
+
+@app.route("/", methods=["GET"])
+def index():
+    return "Welcome to my ZotHacks 2020 project!"
+
 
 if __name__ == "__main__":
     app.run(debug=True)

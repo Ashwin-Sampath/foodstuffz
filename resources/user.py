@@ -1,3 +1,4 @@
+import util
 from flask import json
 from flask_restful import Resource, reqparse
 from bson.objectid import ObjectId
@@ -27,33 +28,26 @@ required_body.add_argument(
     "lastName", type=str, required=True, help="Last name cannot be missing"
 )
 required_body.add_argument(
-    "favoriteCompany", type=str, required=True, help="Favorite company cannot be missing"
+    "favoriteCompany",
+    type=str,
+    required=True,
+    help="Favorite company cannot be missing",
 )
 
 
 class User(Resource):
     def get(self):
         params = search_params.parse_args()
-        query = {}
-        for key, value in params.items():
-            # Converts "_id" to Mongo ObjectId for querying
-            if key == '_id' and value:
-                query[key] = ObjectId(value)
-            elif value:
-                query[key] = value
-        # if not query:
-        #     return {"message": "Invalid params"}, 400
+        query = util.get_mongo_query(params)
         # Search for all users that match query parameters
         users = [user for user in mongo.db.user.find(query)]
-        if not users:
-            return {"message": "User not found"}, 404
-        return json.jsonify(users)
+        return json.jsonify(data=users)
 
     def post(self):
         data = required_body.parse_args()
         # Create user with data from request
         mongo.db.user.insert_one(data)
-        return json.jsonify(data)
+        return json.jsonify(data=data)
 
     def put(self):
         params = required_id.parse_args()
@@ -65,7 +59,7 @@ class User(Resource):
         # Update user with data from request
         mongo.db.user.update_one({"_id": ObjectId(user_id)}, {"$set": data})
         updated_user = mongo.db.user.find_one({"_id": ObjectId(user_id)})
-        return json.jsonify(updated_user)
+        return json.jsonify(data=updated_user)
 
     def delete(self):
         params = required_id.parse_args()
