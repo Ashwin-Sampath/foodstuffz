@@ -5,7 +5,6 @@ from flask import Flask, json
 from flask_cors import CORS
 from flask_restful import Api
 from resources.user import User
-from resources.stock import Stock
 from dotenv import load_dotenv
 
 # Load Environment variables
@@ -23,7 +22,6 @@ db.mongo.init_app(app)
 api = Api(app)
 
 api.add_resource(User, "/user")
-api.add_resource(Stock, "/stock")
 
 
 # Vanilla Flask route

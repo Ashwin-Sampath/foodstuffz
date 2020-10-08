@@ -1,4 +1,4 @@
-# zothacks-2020-backend-workshop
+# zothacks-2020-backend-fundamentals
 
 ## Basic overview
 
