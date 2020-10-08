@@ -12,14 +12,12 @@ class GetSchema(Schema):
     email = fields.Email()
     firstName = fields.Str()
     lastName = fields.Str()
-    favoriteCompany = fields.Str()
 
 
 class PostSchema(Schema):
     email = fields.Email(required=True)
     firstName = fields.Str(required=True)
     lastName = fields.Str(required=True)
-    favoriteCompany = fields.Str()
 
 
 class PutQuerySchema(Schema):
@@ -30,7 +28,6 @@ class PutBodySchema(Schema):
     email = fields.Email(required=True)
     firstName = fields.Str(required=True)
     lastName = fields.Str(required=True)
-    favoriteCompany = fields.Str()
 
 
 class DeleteSchema(Schema):
