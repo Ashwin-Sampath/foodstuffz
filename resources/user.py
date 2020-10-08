@@ -1,69 +1,70 @@
-import util
 from flask import json
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
 from bson.objectid import ObjectId
+from marshmallow import Schema, fields
+from webargs.flaskparser import use_args
 from db import mongo
 
-# Parameter parser used for GET request
-search_params = reqparse.RequestParser()
-search_params.add_argument("_id", type=str)
-search_params.add_argument("email", type=str)
-search_params.add_argument("firstName", type=str)
-search_params.add_argument("lastName", type=str)
-search_params.add_argument("favoriteCompany", type=str)
 
-# Parameter parser used for PUT and DELETE requests
-required_id = reqparse.RequestParser()
-required_id.add_argument("_id", type=str, required=True, help="Id cannot be missing")
+class GetSchema(Schema):
+    # Convert str to Mongo Object ID
+    _id = fields.Function(deserialize=lambda obj: ObjectId(obj))
+    email = fields.Email()
+    firstName = fields.Str()
+    lastName = fields.Str()
+    favoriteCompany = fields.Str()
 
-# Body parser used for POST and PUT requests
-required_body = reqparse.RequestParser()
-required_body.add_argument(
-    "email", type=str, required=True, help="Email cannot be missing"
-)
-required_body.add_argument(
-    "firstName", type=str, required=True, help="First name cannot be missing"
-)
-required_body.add_argument(
-    "lastName", type=str, required=True, help="Last name cannot be missing"
-)
-required_body.add_argument(
-    "favoriteCompany",
-    type=str,
-    required=True,
-    help="Favorite company cannot be missing",
-)
+
+class PostSchema(Schema):
+    email = fields.Email(required=True)
+    firstName = fields.Str(required=True)
+    lastName = fields.Str(required=True)
+    favoriteCompany = fields.Str()
+
+
+class PutQuerySchema(Schema):
+    _id = fields.Function(deserialize=lambda obj: ObjectId(obj), required=True)
+
+
+class PutBodySchema(Schema):
+    email = fields.Email(required=True)
+    firstName = fields.Str(required=True)
+    lastName = fields.Str(required=True)
+    favoriteCompany = fields.Str()
+
+
+class DeleteSchema(Schema):
+    _id = fields.Function(deserialize=lambda obj: ObjectId(obj), required=True)
 
 
 class User(Resource):
-    def get(self):
-        params = search_params.parse_args()
-        query = util.get_mongo_query(params)
-        # Search for all users that match query parameters
+    @use_args(GetSchema(), location="querystring")
+    def get(self, query):
+        # Search for all users that match query arguments
         users = [user for user in mongo.db.user.find(query)]
         return json.jsonify(data=users)
 
-    def post(self):
-        data = required_body.parse_args()
+    @use_args(PostSchema(), location="json")
+    def post(self, body):
         # Create user with data from request
-        mongo.db.user.insert_one(data)
-        return json.jsonify(data=data)
+        mongo.db.user.insert_one(body)
+        return json.jsonify(data=body)
 
-    def put(self):
-        params = required_id.parse_args()
-        user_id = params.get("_id")
+    @use_args(PutQuerySchema(), location="querystring")
+    @use_args(PutBodySchema(), location="json")
+    def put(self, query, body):
+        user_id = query.get("_id")
         user = mongo.db.user.find_one({"_id": ObjectId(user_id)})
         if not user:
             return {"message": "User not found"}, 404
-        data = required_body.parse_args()
         # Update user with data from request
-        mongo.db.user.update_one({"_id": ObjectId(user_id)}, {"$set": data})
+        mongo.db.user.update_one({"_id": ObjectId(user_id)}, {"$set": body})
         updated_user = mongo.db.user.find_one({"_id": ObjectId(user_id)})
         return json.jsonify(data=updated_user)
 
-    def delete(self):
-        params = required_id.parse_args()
-        user_id = params.get("_id")
+    @use_args(DeleteSchema(), location="querystring")
+    def delete(self, query):
+        user_id = query.get("_id")
         user = mongo.db.user.find_one({"_id": ObjectId(user_id)})
         if not user:
             return {"message": "User not found"}, 404

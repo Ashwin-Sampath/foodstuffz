@@ -1,7 +1,7 @@
 import os
 import util
 import db
-from flask import Flask
+from flask import Flask, json
 from flask_cors import CORS
 from flask_restful import Api
 from resources.user import User
@@ -12,10 +12,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+# Allow cross domain apps to access API
 CORS(app)
 
 # Provide Mongo Atlas URI, stored in config file
 app.config["MONGO_URI"] = os.getenv("MONGO_URI")
+# Set custom JSON Encoder for Mongo Object
 app.json_encoder = util.MongoEncoder
 db.mongo.init_app(app)
 api = Api(app)
@@ -24,9 +26,18 @@ api.add_resource(User, "/user")
 api.add_resource(Stock, "/stock")
 
 
+# Vanilla Flask route
 @app.route("/", methods=["GET"])
 def index():
     return "Welcome to my ZotHacks 2020 project!"
+
+
+# Handles validation errors and returns JSON Object
+@app.errorhandler(422)
+@app.errorhandler(400)
+def handle_error(err):
+    messages = err.data.get("messages", ["Invalid request."])
+    return json.jsonify({"errors": messages}), err.code
 
 
 if __name__ == "__main__":
