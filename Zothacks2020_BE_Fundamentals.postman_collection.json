@@ -12,7 +12,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"test2@gmail.com\",\n\t\"firstName\": \"Test\",\n\t\"lastName\": \"User\"\n}",
+					"raw": "{\n\t\"email\": \"test@gmail.com\",\n\t\"firstName\": \"Test\",\n\t\"lastName\": \"User\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
