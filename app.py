@@ -1,12 +1,9 @@
 from flask import Flask, json, request, jsonify
 from flask_cors import CORS
 from flask_restful import Api
-from dotenv import load_dotenv
 from credentials import id, key
 import requests
 
-# Load Environment variables
-load_dotenv()
 
 app = Flask(__name__)
 # Allow cross domain apps to access API
