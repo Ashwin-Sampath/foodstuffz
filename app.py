@@ -1,9 +1,9 @@
-from flask import Flask, json, request
+from flask import Flask, json, request, jsonify
 from flask_cors import CORS
 from flask_restful import Api
-#from resources.user import User
 from dotenv import load_dotenv
 from credentials import id, key
+import requests
 
 # Load Environment variables
 load_dotenv()
@@ -14,11 +14,6 @@ CORS(app)
 api = Api(app)
 
 
-# Vanilla Flask route
-@app.route("/", methods=["GET"])
-def index():
-    return "Welcome to my ZotHacks 2020 project!"
-
 
 # Handles validation errors and returns JSON Object
 @app.errorhandler(422)
@@ -28,34 +23,44 @@ def handle_error(err):
     return json.jsonify({"errors": messages}), err.code
 
 
-@app.route("/search")
+@app.route("/search", methods = ["GET", "POST"])
 def search():
     #Base url to add to
     URL = "https://api.edamam.com/search?"
 
-    #request.args is a dict that contains the search parameters
-    args = request.args
+    #Parses the request data and converts into string
+    content = request.get_json()
+    ingredients = content["ingredients"]
+    healthLabels = content["healthLabels"]
+    
+    
 
-    if len(args) != 0:
+    if ingredients:
         #adds query text to url
-        if 'q' in args:
-            URL += 'q=' + args['q'] + '&'
-        else:
-            return "invalid search"
+        queryIngredientStr = ','.join(ingredients)
+        URL += 'q=' + queryIngredientStr + '&'
+
+        #adds optional health labels to url if they exist
+        if healthLabels:
+            for elem in healthLabels:
+                URL += 'health=' + elem + '&'
         
-        #Adds id and key to request so it can be authenticated by the Edamam API
+        #adds id and key to request so it can be authenticated by the Edamam API
         URL += "app_id=" + id + '&'
         URL += "app_key=" + key
 
+        #sends url request to API and stores in a request object converted into a JSON object
         response = requests.get(URL).json()
 
-        #Not sure if I just return the response or do something else    
+        #(Hopefully) recipes is a list of 'hit' objects, each of which is a dictionary
+        recipes = response['hits']
 
+        return jsonify( {'label': recipes[0]['recipe']['label']} )
         
     else:
-        #Also not sure if returning just this is ok or if something else is needed
-        return "Empty search"
+        return "Empty search", 404
+
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
